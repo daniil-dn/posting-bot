@@ -1,9 +1,10 @@
 import asyncio
 import logging
+import asyncpg
 
 from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.contrib.fsm_storage.redis import RedisStorage
+from aiogram.contrib.fsm_storage.redis import RedisStorage, RedisStorage2
 
 from tgbot.config import load_config
 from tgbot.filters.role import RoleFilter, AdminFilter
@@ -15,8 +16,9 @@ from tgbot.middlewares.role import RoleMiddleware
 logger = logging.getLogger(__name__)
 
 
-def create_pool(user, password, database, host, echo):
-    raise NotImplementedError  # TODO check your db connector
+async def create_pool(user, password, database, host, echo):
+    pool = await asyncpg.create_pool(database=database, user=user, password=password, host=host)
+    return pool
 
 
 async def main():
@@ -28,7 +30,7 @@ async def main():
     config = load_config("bot.ini")
 
     if config.tg_bot.use_redis:
-        storage = RedisStorage()
+        storage = RedisStorage2()
     else:
         storage = MemoryStorage()
     pool = await create_pool(
