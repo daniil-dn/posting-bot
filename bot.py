@@ -12,9 +12,11 @@ from tgbot.handlers.admin import register_admin
 from tgbot.handlers.user import register_user
 from tgbot.middlewares.db import DbMiddleware
 from tgbot.middlewares.role import RoleMiddleware
+from tgbot.middlewares.environment import EnvironmentMiddleware
 
 logger = logging.getLogger(__name__)
 
+bot = ''
 
 async def create_pool(user, password, database, host, echo):
     pool = await asyncpg.create_pool(database=database, user=user, password=password, host=host)
@@ -44,6 +46,7 @@ async def main():
     bot = Bot(token=config.tg_bot.token)
     dp = Dispatcher(bot, storage=storage)
     dp.middleware.setup(DbMiddleware(pool))
+    dp.middleware.setup(EnvironmentMiddleware(config.channel_id))
     dp.middleware.setup(RoleMiddleware(config.tg_bot.admin_id))
     dp.filters_factory.bind(RoleFilter)
     dp.filters_factory.bind(AdminFilter)
