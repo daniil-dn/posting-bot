@@ -4,19 +4,24 @@ import asyncpg
 
 from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.contrib.fsm_storage.redis import RedisStorage, RedisStorage2
+from aiogram.contrib.fsm_storage.redis import RedisStorage2
 
-from tgbot.config import load_config
+from tgbot.config import load_config, Config
 from tgbot.filters.role import RoleFilter, AdminFilter
 from tgbot.handlers.admin import register_admin
 from tgbot.handlers.user import register_user
 from tgbot.middlewares.db import DbMiddleware
 from tgbot.middlewares.role import RoleMiddleware
 from tgbot.middlewares.environment import EnvironmentMiddleware
+from tgbot.services.broadcaster import broadcast
 
 logger = logging.getLogger(__name__)
 
-bot = ''
+
+async def on_startup(bot, config: Config):
+    count = await broadcast(bot, config.tg_bot.admin_ids, 'Бот запущен!')
+    print(count)
+
 
 async def create_pool(user, password, database, host, echo):
     pool = await asyncpg.create_pool(database=database, user=user, password=password, host=host)
@@ -47,7 +52,7 @@ async def main():
     dp = Dispatcher(bot, storage=storage)
     dp.middleware.setup(DbMiddleware(pool))
     dp.middleware.setup(EnvironmentMiddleware(config.channel_id))
-    dp.middleware.setup(RoleMiddleware(config.tg_bot.admin_id))
+    dp.middleware.setup(RoleMiddleware(config.tg_bot.admin_ids))
     dp.filters_factory.bind(RoleFilter)
     dp.filters_factory.bind(AdminFilter)
 
@@ -57,6 +62,7 @@ async def main():
     # start
     try:
         await dp.start_polling()
+        await on_startup(bot, config)
     finally:
         await dp.storage.close()
         await dp.storage.wait_closed()

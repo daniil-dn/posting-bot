@@ -13,7 +13,7 @@ class DbConfig:
 @dataclass
 class TgBot:
     token: str
-    admin_id: int
+    admin_ids: list
     use_redis: bool
     channel_id: id
 
@@ -40,7 +40,7 @@ def load_config(path: str):
     return Config(
         tg_bot=TgBot(
             token=tg_bot["token"],
-            admin_id=int(tg_bot["admin_id"]),
+            admin_ids=list(map(int, tg_bot["admin_ids"].replace(' ', '').split(','))),
             use_redis=cast_bool(tg_bot.get("use_redis")),
             channel_id=int()
         ),

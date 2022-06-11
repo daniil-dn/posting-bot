@@ -9,7 +9,7 @@ class EnvironmentMiddleware(LifetimeControllerMiddleware):
         self.channel_id = channel_id
 
     async def pre_process(self, obj, data, *args):
-            data["channel_id"] = self.channel_id
+        data["channel_id"] = self.channel_id
 
     async def post_process(self, obj, data, *args):
         pass
