@@ -1,6 +1,7 @@
 import asyncio
+import json
 import logging
-import asyncpg
+import asyncpgx
 
 from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -20,12 +21,23 @@ logger = logging.getLogger(__name__)
 
 async def on_startup(bot, config: Config):
     count = await broadcast(bot, config.tg_bot.admin_ids, 'Бот запущен!')
-    print(count)
+    return count
 
 
 async def create_pool(user, password, database, host, echo):
-    pool = await asyncpg.create_pool(database=database, user=user, password=password, host=host)
+    pool = await asyncpgx.create_pool(database=database, user=user, password=password, host=host)
     return pool
+
+
+def insert_vacancy_cb(connection, pid, channel, payload):
+    payload = json.loads(payload)
+    print(payload)
+    return
+
+
+async def check_db(pool):
+    conn = await pool.acquire()
+    await conn.add_listener('insert_vacancy', insert_vacancy_cb)
 
 
 async def main():
@@ -35,6 +47,7 @@ async def main():
     )
     logger.error("Starting bot")
     config = load_config("bot.ini")
+    # await asyncio.run(check_db)
 
     if config.tg_bot.use_redis:
         storage = RedisStorage2()
@@ -47,7 +60,7 @@ async def main():
         host=config.db.host,
         echo=False,
     )
-
+    await check_db(pool)
     bot = Bot(token=config.tg_bot.token)
     dp = Dispatcher(bot, storage=storage)
     dp.middleware.setup(DbMiddleware(pool))
@@ -72,5 +85,6 @@ async def main():
 if __name__ == '__main__':
     try:
         asyncio.run(main())
+
     except (KeyboardInterrupt, SystemExit):
         logger.error("Bot stopped!")

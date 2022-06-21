@@ -4,7 +4,7 @@ from tgbot.services.repository import Repo
 
 
 async def user_start(m: Message, repo: Repo):
-    await repo.add_user(m.from_user.id)
+    await repo.add_user(m.from_user.id, m.from_user.username)
     print("Hello, user!")
 
 
@@ -19,3 +19,6 @@ async def moder_message(m: Message, repo: Repo, channel_id: int):
 def register_user(dp: Dispatcher):
     dp.register_message_handler(user_start, commands=["start"], state="*")
     dp.register_message_handler(moder_message, content_types=[types.ContentType.TEXT, ], state="*")
+
+# INSERT INTO user_vacancies(main_part, tags, link, userid, date_time) VALUES
+# ('<b>GENERALIST (Indie)</b> 🌎 Удаленно' , '# #UnrealEngine #GameDev #Remote #Indie', 'asdf', 5104338493, CURRENT_TIMESTAMP) ON CONFLICT DO NOTHING;
