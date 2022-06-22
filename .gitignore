@@ -1,10 +1,14 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
 db.sql
 bot.ini
+.idea
+/env
 
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+*.py[cod]
+*$py.class
 
 # C extensions
 *.so
@@ -127,6 +131,7 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
 
 # Pyre type checker
 .pyre/
