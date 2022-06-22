@@ -62,12 +62,17 @@ async def main():
         payload = json.loads(payload)
         username = await connection.fetch(
             f'SELECT username from tg_users where user_id = {payload.get("user_id", "")};')
-        await broadcast(bot, config.tg_bot.admin_ids,f'NEW Vacancy from {username[0]["username"]}')
+        username = username[0]["username"]
+        await broadcast(bot, config.tg_bot.admin_ids, f'NEW Vacancy from {username}')
         text = payload.get('main_part')
         tags = payload.get('tags')
         button_link = f"\n\n<a href='{payload.get('link')}'>🌐 Vacancy link</a>"
-        await bot.send_message(config.moder_chat_id, f"{text + button_link + tags}", parse_mode="html",
-                               disable_web_page_preview=True)
+        try:
+            await bot.send_message(config.moder_chat_id, f"Vacancy from {username}\n\n{text + button_link + tags}",
+                                   parse_mode="html",
+                                   disable_web_page_preview=True)
+        except Exception as err:
+            await broadcast(bot, config.tg_bot.admin_ids, str(err), True)
         return
 
     async def check_db(pool):

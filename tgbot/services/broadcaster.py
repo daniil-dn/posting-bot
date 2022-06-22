@@ -26,11 +26,12 @@ async def send_message(bot: Bot, user_id, text: str, disable_notification: bool 
     return False
 
 
-async def broadcast(bot, users, text) -> int:
+async def broadcast(bot, users, text, smth_wrong = False) -> int:
     """
     Simple broadcaster
     :return: Count of messages
     """
+    text = f'ERROR!  Check bot... {text}' if smth_wrong else text
     count = 0
     try:
         for user_id in users:
