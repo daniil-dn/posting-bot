@@ -29,17 +29,6 @@ async def create_pool(user, password, database, host, echo):
     return pool
 
 
-def insert_vacancy_cb(connection, pid, channel, payload):
-    payload = json.loads(payload)
-    print(payload)
-    return
-
-
-async def check_db(pool):
-    conn = await pool.acquire()
-    await conn.add_listener('insert_vacancy', insert_vacancy_cb)
-
-
 async def main():
     logging.basicConfig(
         level=logging.INFO,
@@ -47,7 +36,6 @@ async def main():
     )
     logger.error("Starting bot")
     config = load_config("bot.ini")
-    # await asyncio.run(check_db)
 
     if config.tg_bot.use_redis:
         storage = RedisStorage2()
@@ -60,7 +48,7 @@ async def main():
         host=config.db.host,
         echo=False,
     )
-    await check_db(pool)
+
     bot = Bot(token=config.tg_bot.token)
     dp = Dispatcher(bot, storage=storage)
     dp.middleware.setup(DbMiddleware(pool))
@@ -68,6 +56,22 @@ async def main():
     dp.middleware.setup(RoleMiddleware(config.tg_bot.admin_ids))
     dp.filters_factory.bind(RoleFilter)
     dp.filters_factory.bind(AdminFilter)
+
+    async def insert_vacancy_cb(connection, pid, channel, payload):
+        payload = json.loads(payload)
+        username = await connection.execute(f'SELECT username from tg_users where user_id = {payload.get("user_id", "")}')
+        text = payload.get('main_part')
+        tags = payload.get('tags')
+        button_link = f"\n\n<a href='{payload.get('link')}'>🌐 Vacancy link</a>"
+        await bot.send_message(config.moder_chat_id, f"{text + button_link + tags}", parse_mode="html",
+                               disable_web_page_preview=True)
+        return
+
+    async def check_db(pool):
+        conn = await pool.acquire()
+        await conn.add_listener('insert_vacancy', insert_vacancy_cb)
+
+    await check_db(pool)
 
     register_admin(dp)
     register_user(dp)

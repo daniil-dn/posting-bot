@@ -5,7 +5,7 @@ from tgbot.services.repository import Repo
 
 async def user_start(m: Message, repo: Repo):
     await repo.add_user(m.from_user.id, m.from_user.username)
-    print("Hello, user!")
+    await m.reply("Hello, user!")
 
 
 async def moder_message(m: Message, repo: Repo, channel_id: int):

@@ -23,6 +23,7 @@ class Config:
     tg_bot: TgBot
     db: DbConfig
     channel_id: int
+    moder_chat_id: int
 
 
 def cast_bool(value: str) -> bool:
@@ -46,4 +47,5 @@ def load_config(path: str):
         ),
         db=DbConfig(**config["db"]),
         channel_id=int(tg_bot['channel_id']),
+        moder_chat_id=int(tg_bot['moder_chat_id']),
     )
