@@ -38,10 +38,15 @@ def load_config(path: str):
 
     tg_bot = config["tg_bot"]
 
+    #Для получения массива админов из конфига bot.ini
+    admins = tg_bot["admin_ids"].replace(' ', '').split(',')
+    #Проверка на правильно введеное id админов.
+    admins = [i for i in admins if i.isalnum()]
+
     return Config(
         tg_bot=TgBot(
             token=tg_bot["token"],
-            admin_ids=list(map(int, tg_bot["admin_ids"].replace(' ', '').split(','))),
+            admin_ids=list(map(int, admins)),
             use_redis=cast_bool(tg_bot.get("use_redis")),
             channel_id=int()
         ),

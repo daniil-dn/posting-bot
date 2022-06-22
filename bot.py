@@ -35,7 +35,7 @@ async def main():
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
     )
     logger.error("Starting bot")
-    config = load_config("bot.ini")
+    config = load_config("tgbot/bot.ini")
 
     if config.tg_bot.use_redis:
         storage = RedisStorage2()
@@ -58,8 +58,11 @@ async def main():
     dp.filters_factory.bind(AdminFilter)
 
     async def insert_vacancy_cb(connection, pid, channel, payload):
+
         payload = json.loads(payload)
-        username = await connection.execute(f'SELECT username from tg_users where user_id = {payload.get("user_id", "")}')
+        username = await connection.fetch(
+            f'SELECT username from tg_users where user_id = {payload.get("user_id", "")};')
+        await broadcast(bot, config.tg_bot.admin_ids,f'NEW Vacancy from {username[0]["username"]}')
         text = payload.get('main_part')
         tags = payload.get('tags')
         button_link = f"\n\n<a href='{payload.get('link')}'>🌐 Vacancy link</a>"
