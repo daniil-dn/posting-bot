@@ -68,7 +68,7 @@ async def main():
         tags = payload.get('tags')
         button_link = f"\n\n<a href='{payload.get('link')}'>🌐 Vacancy link</a>"
         try:
-            await bot.send_message(config.moder_chat_id, f"Vacancy from {username}\n\n{text + button_link + tags}",
+            await bot.send_message(config.moder_chat_id, f"Vacancy from @{username}\n\n{text + button_link + tags}",
                                    parse_mode="html",
                                    disable_web_page_preview=True)
         except Exception as err:
