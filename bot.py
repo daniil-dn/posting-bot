@@ -70,7 +70,7 @@ async def main():
         vacancy_id = payload.get('id')
         button_link = f"\n\n<a href='{payload.get('link')}'>🌐 Vacancy link</a>"
         try:
-            markup_kb = KeyboardManager.get_default_vacancy_kb(vacancy_id, payload.get("user_id") )
+            markup_kb = KeyboardManager.get_default_vacancy_kb(payload.get("user_id"), vacancy_id)
             await bot.send_message(config.moder_chat_id, f"Vacancy from @{username}\n\n{text + button_link + tags}",
                                    parse_mode="html",
                                    disable_web_page_preview=True, reply_markup=markup_kb)

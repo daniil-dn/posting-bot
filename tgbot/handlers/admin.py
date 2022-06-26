@@ -67,23 +67,38 @@ async def ban_user(m: Message, repo: Repo):
 
 async def ban_cb(cb: CallbackQuery, repo: Repo):
     config = load_config("tgbot/bot.ini")
-    user_id = cb.data.split('_')[1]
+    cb_data_split = cb.data.split('_')
+    user_id = cb_data_split[1]
+    vacancy_id = cb.data.split('_')[2]
 
+    # помещает в банлист базы
     await repo.ban_user(user_id)
-    await broadcast(cb.bot, config.tg_bot.admin_ids, f'@{cb.from_user.username} is banned')
-    bnm_kb = KeyboardManager.unban_cb_markup(user_id)
-    ban_notification_mg = \
-        await cb.bot.send_message(config.moder_chat_id,
-                                  f'User @{cb.from_user.username} - {cb.from_user.id} is banned.',
-                                  reply_markup=bnm_kb)
 
+    # admin broadcast notification
+    await broadcast(cb.bot, config.tg_bot.admin_ids, f'@{cb.from_user.username} - {user_id} is banned')
+
+    # После бана меняется кнопка под вакансией
+    bnm_kb = KeyboardManager.ban_unban_btn_markup(user_id, vacancy_id=vacancy_id, to_ban=False)
+    await cb.message.edit_reply_markup(bnm_kb)
+
+    # уведомление в общий чат о том, что юзер забанен
+    if cb.message.text.find('#UnrealEngine') > -1:
+        ban_notification_mg = \
+            await cb.message.reply(f'User @{cb.from_user.username} - {cb.from_user.id} is banned.',
+                                   reply_markup=bnm_kb, parse_mode="html")
 
 async def unban_cb(cb: CallbackQuery, repo: Repo):
     config = load_config("tgbot/bot.ini")
-    user_id = cb.data.split('_')[1]
+    cb_data_split = cb.data.split('_')
+    user_id = cb_data_split[1]
+    vacancy_id = cb.data.split('_')[2]
     await repo.unban_user(user_id)
     await broadcast(cb.bot, config.tg_bot.admin_ids, f'@{cb.from_user.username} is unbanned')
-
+    if cb.message.text.find('#UnrealEngine') > -1:
+        markup_kb = KeyboardManager.get_default_vacancy_kb(user_id, vacancy_id, to_ban=True)
+    else:
+        markup_kb = KeyboardManager.ban_unban_btn_markup(user_id, vacancy_id, to_ban=True)
+    await cb.message.edit_reply_markup(markup_kb)
 
 
 def register_admin(dp: Dispatcher):
@@ -93,6 +108,7 @@ def register_admin(dp: Dispatcher):
     dp.register_message_handler(time_entered, state=Enter_time_post.waiting_for_time,
                                 role=UserRole.ADMIN)
     dp.register_callback_query_handler(ban_cb, lambda cb: cb.data.find('ban') == 0, state="*")
+    dp.register_callback_query_handler(unban_cb, lambda cb: cb.data.find('unban') == 0, state="*")
     dp.register_message_handler(show_banlist, commands=["banlist"], state="*", role=UserRole.ADMIN)
 
     # TODO сделать бан и разбан на конечных автоматах

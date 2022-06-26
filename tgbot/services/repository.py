@@ -46,4 +46,12 @@ class Repo:
         request = f"select * from ban_list;"
         return str([row[0] for row in await self.conn.fetch(request)])
 
+    async def check_ban(self, user_id) -> bool:
+        return bool([
+            row[0]
+            for row in await self.conn.fetch(
+                f"select user_id from ban_list where user_id = {user_id}",
+            )
+        ])
+
 # SELECT pg_xact_commit_timestamp(xmin) as time, * FROM tg_users order by time limit 1; #Check for update

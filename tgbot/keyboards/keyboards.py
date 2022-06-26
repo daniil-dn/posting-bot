@@ -4,11 +4,12 @@ from aiogram import types
 class KeyboardManager:
 
     @staticmethod
-    def get_default_vacancy_kb(vacancy_id, user_id):
+    def get_default_vacancy_kb(user_id, vacancy_id, to_ban=True):
+        ban_unban_txt = 'Ban' if to_ban else 'Unban'
         kb = types.InlineKeyboardMarkup(row_width=3)
         kb.add(types.InlineKeyboardButton('Publish', callback_data=f'publish_{vacancy_id}'))
         kb.insert(types.InlineKeyboardButton('Reject', callback_data=f'reject_{vacancy_id}'))
-        kb.insert(types.InlineKeyboardButton('Ban', callback_data=f'ban_{user_id}'))
+        kb.insert(types.InlineKeyboardButton(ban_unban_txt, callback_data=f'ban_{user_id}_{vacancy_id}'))
         return kb
 
     @staticmethod
@@ -20,7 +21,10 @@ class KeyboardManager:
         return kb
 
     @staticmethod
-    def unban_cb_markup(user_id):
+    def ban_unban_btn_markup(user_id, vacancy_id=False, to_ban=True):
         kb = types.InlineKeyboardMarkup(row_width=3)
-        kb.insert(types.InlineKeyboardButton('Unban', callback_data=f'unban_{user_id}'))
+        text = 'Ban' if to_ban else 'Unban'
+        vacancy_id = f"_vacancy_id" if vacancy_id else ''
+        un_or_ban = 'ban' if to_ban else 'unban'
+        kb.insert(types.InlineKeyboardButton(text, callback_data=f'{un_or_ban}_{user_id}{vacancy_id}'))
         return kb
