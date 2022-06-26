@@ -64,7 +64,7 @@ async def main():
         username = await connection.fetch(
             f'SELECT username from tg_users where user_id = {payload.get("user_id")};')
         username = username[0]["username"]
-        await broadcast(bot, config.tg_bot.admin_ids, f'NEW Vacancy from {username}')
+        await broadcast(bot, config.tg_bot.admin_ids, f'NEW Vacancy from @{username}')
         text = payload.get('main_part')
         tags = payload.get('tags')
         vacancy_id = payload.get('id')
