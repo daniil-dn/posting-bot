@@ -15,6 +15,7 @@ from tgbot.middlewares.db import DbMiddleware
 from tgbot.middlewares.role import RoleMiddleware
 from tgbot.middlewares.environment import EnvironmentMiddleware
 from tgbot.services.broadcaster import broadcast
+from tgbot.keyboards.keyboards import KeyboardManager
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +58,7 @@ async def main():
     dp.filters_factory.bind(RoleFilter)
     dp.filters_factory.bind(AdminFilter)
 
-    async def insert_vacancy_cb(connection, pid, channel, payload):
+    async def new_vacancy_cb(connection, pid, channel, payload):
 
         payload = json.loads(payload)
         username = await connection.fetch(
@@ -66,18 +67,21 @@ async def main():
         await broadcast(bot, config.tg_bot.admin_ids, f'NEW Vacancy from {username}')
         text = payload.get('main_part')
         tags = payload.get('tags')
+        vacancy_id = payload.get('id')
         button_link = f"\n\n<a href='{payload.get('link')}'>🌐 Vacancy link</a>"
         try:
+            markup_kb = KeyboardManager.get_default_vacancy_kb(vacancy_id)
             await bot.send_message(config.moder_chat_id, f"Vacancy from @{username}\n\n{text + button_link + tags}",
                                    parse_mode="html",
-                                   disable_web_page_preview=True)
+                                   disable_web_page_preview=True, reply_markup=markup_kb)
+            # vacancy_dict = {'username': username, 'text': text, 'button_link': button_link, 'tags': tags}
         except Exception as err:
             await broadcast(bot, config.tg_bot.admin_ids, str(err), True)
         return
 
     async def check_db(pool):
         conn = await pool.acquire()
-        await conn.add_listener('insert_vacancy', insert_vacancy_cb)
+        await conn.add_listener('insert_vacancy', new_vacancy_cb)
 
     await check_db(pool)
 

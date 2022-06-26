@@ -7,7 +7,6 @@ class Repo:
     def __init__(self, conn):
         self.conn = conn
 
-
     # users
     async def add_user(self, user_id, username) -> None:
         """Store user in DB, ignore duplicates"""
@@ -28,5 +27,19 @@ class Repo:
                 "select userid, username from tg_users;",
             )
         ]
+
+    async def ban_user(self, user_id):
+        request = f"INSERT INTO ban_list (user_id) VALUES ({user_id}) ON CONFLICT DO NOTHING;"
+        await self.conn.execute(
+            request
+        )
+        return "user is banned"
+
+    async def unban_user(self, user_id):
+        request = f"delete from ban_list where user_id = {user_id}"
+        await self.conn.execute(
+            request
+        )
+        return "user is unbanned"
 
 # SELECT pg_xact_commit_timestamp(xmin) as time, * FROM tg_users order by time limit 1; #Check for update
