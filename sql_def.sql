@@ -50,5 +50,5 @@ create trigger after_insert_vacancy
 execute procedure insert_vacancy_trigger();
 
 drop table ban_list;
-create table ban_list(user_id  bigint not null
-        primary key);
+create table ban_list(
+user_id  bigint not null primary key);

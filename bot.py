@@ -62,7 +62,7 @@ async def main():
 
         payload = json.loads(payload)
         username = await connection.fetch(
-            f'SELECT username from tg_users where user_id = {payload.get("user_id", "")};')
+            f'SELECT username from tg_users where user_id = {payload.get("user_id")};')
         username = username[0]["username"]
         await broadcast(bot, config.tg_bot.admin_ids, f'NEW Vacancy from {username}')
         text = payload.get('main_part')
@@ -70,7 +70,7 @@ async def main():
         vacancy_id = payload.get('id')
         button_link = f"\n\n<a href='{payload.get('link')}'>🌐 Vacancy link</a>"
         try:
-            markup_kb = KeyboardManager.get_default_vacancy_kb(vacancy_id)
+            markup_kb = KeyboardManager.get_default_vacancy_kb(vacancy_id, payload.get("user_id") )
             await bot.send_message(config.moder_chat_id, f"Vacancy from @{username}\n\n{text + button_link + tags}",
                                    parse_mode="html",
                                    disable_web_page_preview=True, reply_markup=markup_kb)
