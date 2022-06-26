@@ -22,7 +22,7 @@ class Repo:
         #     f"select userid from tg_users;"
         # )
         return [
-            row[0]
+            row
             for row in await self.conn.fetch(
                 "select userid, username from tg_users;",
             )
@@ -36,10 +36,14 @@ class Repo:
         return "user is banned"
 
     async def unban_user(self, user_id):
-        request = f"delete from ban_list where user_id = {user_id}"
+        request = f"delete from ban_list where user_id = {user_id};"
         await self.conn.execute(
             request
         )
         return "user is unbanned"
+
+    async def banlist_str(self):
+        request = f"select * from ban_list;"
+        return str([row[0] for row in await self.conn.fetch(request)])
 
 # SELECT pg_xact_commit_timestamp(xmin) as time, * FROM tg_users order by time limit 1; #Check for update
