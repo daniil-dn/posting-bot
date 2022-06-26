@@ -15,4 +15,6 @@ class KeyboardManager:
     def get_admin_start_rm():
         kb = types.ReplyKeyboardMarkup(row_width=3)
         kb.insert(types.KeyboardButton('/banlist'))
+        kb.insert(types.KeyboardButton('/unban ID'))
+        kb.insert(types.KeyboardButton('/ban ID'))
         return kb
