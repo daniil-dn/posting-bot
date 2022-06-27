@@ -75,7 +75,9 @@ async def ban_cb(cb: CallbackQuery, repo: Repo):
     await repo.ban_user(user_id)
 
     # admin broadcast notification
-    await broadcast(cb.bot, config.tg_bot.admin_ids, f'@{cb.from_user.username} - {user_id} is banned')
+    username = await repo.get_username_from_id(user_id)
+    username = username if username else 'without Username'
+    await broadcast(cb.bot, config.tg_bot.admin_ids, f'@{username} - {user_id} is banned')
 
     # После бана меняется кнопка под вакансией
     bnm_kb = KeyboardManager.ban_unban_btn_markup(user_id, vacancy_id=vacancy_id, to_ban=False)

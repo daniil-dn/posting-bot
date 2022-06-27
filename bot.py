@@ -61,16 +61,22 @@ async def main():
     async def new_vacancy_cb(connection, pid, channel, payload):
 
         payload = json.loads(payload)
-        username = await connection.fetch(
-            f'SELECT username from tg_users where user_id = {payload.get("user_id")};')
-        username = username[0]["username"]
-        await broadcast(bot, config.tg_bot.admin_ids, f'NEW Vacancy from @{username}')
+        user_id = payload.get("user_id")
         text = payload.get('main_part')
         tags = payload.get('tags')
+        link = payload.get('link')
         vacancy_id = payload.get('id')
-        button_link = f"\n\n<a href='{payload.get('link')}'>🌐 Vacancy link</a>"
+        button_link = f"\n\n<a href='{link}'>🌐 Vacancy link</a>"
+
+        username = await connection.fetch(
+            f'SELECT username from tg_users where user_id = {user_id};')
+        username = username[0]["username"]
+        # Return list A list of Record instances. If specified, the actual type of list elements would be record_class.
+
+        await broadcast(bot, config.tg_bot.admin_ids, f'NEW Vacancy from @{username}')
+
         try:
-            markup_kb = KeyboardManager.get_default_vacancy_kb(payload.get("user_id"), vacancy_id)
+            markup_kb = KeyboardManager.get_default_vacancy_kb(user_id, vacancy_id)
             await bot.send_message(config.moder_chat_id, f"Vacancy from @{username}\n\n{text + button_link + tags}",
                                    parse_mode="html",
                                    disable_web_page_preview=True, reply_markup=markup_kb)
@@ -79,11 +85,9 @@ async def main():
             await broadcast(bot, config.tg_bot.admin_ids, str(err), True)
         return
 
-    async def check_db(pool):
-        conn = await pool.acquire()
-        await conn.add_listener('insert_vacancy', new_vacancy_cb)
-
-    await check_db(pool)
+    # Обработчик новых вакансий
+    conn_for_listner = await pool.acquire()
+    await conn_for_listner.add_listener('insert_vacancy', new_vacancy_cb)
 
     register_admin(dp)
     register_user(dp)
