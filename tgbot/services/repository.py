@@ -8,7 +8,7 @@ class Repo:
         self.conn = conn
 
     async def get_username_from_id(self, user_id) -> str:
-        req = f'select username from user_vacancies where user_id = {user_id}'
+        req = f'select username from tg_users where user_id = {user_id}'
         res = await self.conn.fetch(req)
         username = res[0]['username']
         return username
