@@ -11,7 +11,7 @@ from tgbot.services.broadcaster import broadcast
 from tgbot.keyboards.keyboards import KeyboardManager
 from tgbot.config import load_config
 
-to_remove_dict = {k: '' for k in string.punctuation + string.whitespace}
+to_remove_dict = {k: '' for k in string.punctuation + '\n'}
 CHAR_REMOVE = str.maketrans(to_remove_dict)
 
 
@@ -48,11 +48,11 @@ async def show_banlist(m: Message, repo: Repo):
 
 # COMMAND UNBAN
 async def unban_user(m: Message = None, repo: Repo = None):
-    unban_id_list = m.text.split(' ')
+    unban_id_list = m.text.lower().translate(CHAR_REMOVE).split(' ')
     if unban_id_list[1].isdigit():
         repo_mes = await repo.unban_user(unban_id_list[1])
         if repo_mes:
-            await m.reply(f'Юзер ID: {unban_id_list[1]} разбанен')
+            await m.reply(f'USER ID: {unban_id_list[1]} разбанен')
 
     else:
         await m.reply(f'{m.text} не выполнена! \nПример: /unban 777777')
@@ -65,7 +65,7 @@ async def ban_user(m: Message, repo: Repo):
     if ban_id_list[1].isdigit():
         repo_mes = await repo.ban_user(ban_id_list[1])
         if repo_mes:
-            await m.reply(f'User ID: {ban_id_list[1]} забанен')
+            await m.reply(f'USER ID: {ban_id_list[1]} забанен')
 
     else:
         await m.reply(f'{m.text} не выполнена! \nПример: /ban 777777')
@@ -89,7 +89,6 @@ async def ban_cb(cb: CallbackQuery, repo: Repo):
     # После бана меняется кнопка под сообщением
     bnm_kb = KeyboardManager.ban_unban_btn_markup(user_id, vacancy_id=vacancy_id, to_ban=False)
     await cb.message.edit_reply_markup(bnm_kb)
-
 
     # сообщение в общий чат о том, что юзер забанен + кнопка разбана под ним
     if cb.message.text.find('#UnrealEngine') > -1:
