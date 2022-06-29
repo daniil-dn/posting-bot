@@ -1,3 +1,5 @@
+import string
+
 from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.types import Message, CallbackQuery
@@ -8,6 +10,9 @@ from tgbot.services.repository import Repo
 from tgbot.services.broadcaster import broadcast
 from tgbot.keyboards.keyboards import KeyboardManager
 from tgbot.config import load_config
+
+to_remove_dict = {k: '' for k in string.punctuation + string.whitespace}
+CHAR_REMOVE = str.maketrans(to_remove_dict)
 
 
 class Enter_time_post(StatesGroup):
@@ -41,6 +46,7 @@ async def show_banlist(m: Message, repo: Repo):
     await m.delete()
 
 
+# COMMAND UNBAN
 async def unban_user(m: Message = None, repo: Repo = None):
     unban_id_list = m.text.split(' ')
     if unban_id_list[1].isdigit():
@@ -53,8 +59,9 @@ async def unban_user(m: Message = None, repo: Repo = None):
         await m.delete()
 
 
+# COMMAND BAN
 async def ban_user(m: Message, repo: Repo):
-    ban_id_list = m.text.split(' ')
+    ban_id_list = m.text.lower().translate(CHAR_REMOVE).split(' ')
     if ban_id_list[1].isdigit():
         repo_mes = await repo.ban_user(ban_id_list[1])
         if repo_mes:
@@ -79,15 +86,16 @@ async def ban_cb(cb: CallbackQuery, repo: Repo):
     username = username if username else 'without Username'
     await broadcast(cb.bot, config.tg_bot.admin_ids, f'@{username} - {user_id} is banned')
 
-    # После бана меняется кнопка под вакансией
+    # После бана меняется кнопка под сообщением
     bnm_kb = KeyboardManager.ban_unban_btn_markup(user_id, vacancy_id=vacancy_id, to_ban=False)
     await cb.message.edit_reply_markup(bnm_kb)
 
-    # уведомление в общий чат о том, что юзер забанен
+
+    # сообщение в общий чат о том, что юзер забанен + кнопка разбана под ним
     if cb.message.text.find('#UnrealEngine') > -1:
-        ban_notification_mg = \
-            await cb.message.reply(f'User @{cb.from_user.username} - {cb.from_user.id} is banned.',
-                                   reply_markup=bnm_kb, parse_mode="html")
+        await cb.message.reply(f'User @{cb.from_user.username} - {cb.from_user.id} is banned.',
+                               reply_markup=bnm_kb, parse_mode="html")
+
 
 async def unban_cb(cb: CallbackQuery, repo: Repo):
     config = load_config("tgbot/bot.ini")

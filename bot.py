@@ -66,7 +66,8 @@ async def main():
         tags = payload.get('tags')
         link = payload.get('link')
         vacancy_id = payload.get('id')
-        button_link = f"\n\n<a href='{link}'>🌐 Vacancy link</a>"
+
+        button_link = f"\n\n<a href='{link}'>🌐 Vacancy link</a>" if link else ''
 
         username = await connection.fetch(
             f'SELECT username from tg_users where user_id = {user_id};')
