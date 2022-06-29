@@ -95,8 +95,9 @@ async def main():
 
     # start
     try:
-        await dp.start_polling()
         await on_startup(bot, config)
+        await dp.start_polling()
+
     finally:
         await dp.storage.close()
         await dp.storage.wait_closed()
