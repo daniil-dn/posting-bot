@@ -16,9 +16,9 @@ from tgbot.middlewares.role import RoleMiddleware
 from tgbot.middlewares.environment import EnvironmentMiddleware
 from tgbot.services.broadcaster import broadcast
 from tgbot.keyboards.keyboards import KeyboardManager
+from tgbot.services.NewVacancyParsing import start_notifing
 
 logger = logging.getLogger(__name__)
-
 
 async def on_startup(bot, config: Config):
     count = await broadcast(bot, config.tg_bot.admin_ids, 'Бот запущен!')
@@ -95,7 +95,9 @@ async def main():
 
     # start
     try:
+        tln_conf = config.telethone
         await on_startup(bot, config)
+        await start_notifing(tln_conf['api_id'], tln_conf['api_hash'], tln_conf['to_forward'], ['ue', "unreal"])
         await dp.start_polling()
 
     finally:

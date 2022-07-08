@@ -19,9 +19,17 @@ class TgBot:
 
 
 @dataclass
+class Telethone:
+    api_id: int
+    api_hash: str
+    to_forward: int
+
+
+@dataclass
 class Config:
     tg_bot: TgBot
     db: DbConfig
+    telethone: Telethone
     channel_id: int
     moder_chat_id: int
 
@@ -37,10 +45,11 @@ def load_config(path: str):
     config.read(path)
 
     tg_bot = config["tg_bot"]
+    telethone = config['telethone']
 
-    #Для получения массива админов из конфига bot.ini
+    # Для получения массива админов из конфига bot.ini
     admins = tg_bot["admin_ids"].replace(' ', '').split(',')
-    #Проверка на правильно введеное id админов.
+    # Проверка на правильно введеное id админов.
     admins = [i for i in admins if i.isalnum()]
 
     return Config(
@@ -51,6 +60,11 @@ def load_config(path: str):
             channel_id=int()
         ),
         db=DbConfig(**config["db"]),
+        telethone=Telethone(
+            api_hash=telethone['api_hash'],
+            api_id=int(telethone['api_id']),
+            to_forward=int(telethone['to_forward'])
+        ),
         channel_id=int(tg_bot['channel_id']),
         moder_chat_id=int(tg_bot['moder_chat_id']),
     )
