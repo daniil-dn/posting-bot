@@ -97,7 +97,7 @@ async def main():
     try:
         tln_conf = config.telethone
         await on_startup(bot, config)
-        await start_notifing(tln_conf['api_id'], tln_conf['api_hash'], tln_conf['to_forward'], ['ue', "unreal"])
+        await start_notifing(tln_conf.api_id, tln_conf.api_hash, tln_conf.to_forward, ['ue', "unreal"])
         await dp.start_polling()
 
     finally:
