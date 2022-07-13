@@ -34,6 +34,26 @@ class Repo:
             )
         ]
 
+    async def list_listened_channel(self):
+        '''List all channel which are listened by the bot'''
+
+        request = 'select * from listened_channel_name;'
+
+        res_list = [row[0] for row in await self.conn.fetch(request)]
+        return res_list
+
+    async def rm_listened_channel(self, channel_name):
+        '''Remove a channel which are listened by the bot'''
+        channel_name = channel_name.replace('/', '').replace('\\', '').replace('"', '').replace('\'', '')
+        request = f"delete from listened_channel_name where channel_name='{channel_name}';"
+        return await self.conn.execute(request)
+
+    async def add_listened_channel(self, channel_name):
+        '''Add a channel which are listened by the bot'''
+        channel_name = channel_name.replace('/', '').replace('\\', '').replace('"', '').replace('\'', '')
+        request = f"insert into listened_channel_name (channel_name) values ('{channel_name}') on conflict do nothing;"
+        return await self.conn.execute(request)
+
     async def ban_user(self, user_id):
         request = f"INSERT INTO ban_list (user_id) VALUES ({user_id}) ON CONFLICT DO NOTHING;"
         await self.conn.execute(

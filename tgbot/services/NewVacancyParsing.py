@@ -1,21 +1,39 @@
 import asyncpgx
 from telethon import TelegramClient, sync, events
+from tgbot.middlewares.db import Repo
 
 
 # api_id = 10582137
 # api_hash = 'bcc45c276f0c29e35cc5d56422c60e45'
 # where_to_send = -1001662034287
-async def start_notifing(api_id, api_hash, where_to_send, key_phrases_list, session_name='default_name'):
+async def start_notifing(api_id, api_hash, where_to_send, key_phrases_list, config, create_pool,
+                         session_name='default_name'):
     client = TelegramClient(session_name, api_id, api_hash)
+
+    pool = await create_pool(
+        user=config.db.user,
+        password=config.db.password,
+        database=config.db.database,
+        host=config.db.host,
+        echo=False,
+    )
 
     @client.on(events.NewMessage)
     async def all_handler(event):
-        if not event.is_channel:
+        db = await pool.acquire()
+        repo = Repo(db)
+        chs_list = await repo.list_listened_channel()
+
+        try:
+            username = getattr(event.chat, 'username')
+        except AttributeError as err:
+            return
+        if not username in chs_list:
             return
         for key_phrase in key_phrases_list:
             if event.message.text.lower().find(key_phrase) > -1:
                 print('find a new vacancy on tg')
-                await client.forward_messages(where_to_send, event.message)
+                await client.forward_messages(where_to_send, event.message, silent=True)
                 return
 
     await client.start()

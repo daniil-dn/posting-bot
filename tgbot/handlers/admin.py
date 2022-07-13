@@ -15,8 +15,9 @@ to_remove_dict = {k: '' for k in string.punctuation + '\n'}
 CHAR_REMOVE = str.maketrans(to_remove_dict)
 
 
-class Enter_time_post(StatesGroup):
-    waiting_for_time = State()
+class Enter_channel_name(StatesGroup):
+    waiting_for_name = State()
+    waiting_for_name_rm = State()
 
 
 async def admin_start(m: Message):
@@ -28,16 +29,36 @@ async def admin_help(m: Message):
     await m.reply("/banlist - вывод забаненых user_idj"
                   "\n/ban ID || ban ID - бан по user_id "
                   "\n/unban ID || unban ID - разабан по user_id"
+                  "\n/add_channel || /remove_channel - добавить или удалить отслеживаемый канал "
+                  "\n/show_channels  - показать отслеживаемые каналы"
                   "\n/help - вывод этого окна", parse_mode='html', reply_markup=KeyboardManager.get_admin_start_rm())
 
 
-async def admin_choose_time(m: Message):
-    await m.reply("Hello, admin! Enter time")
-    await Enter_time_post.waiting_for_time.set()
+async def admin_add_channel(m: Message):
+    await m.reply("Enter channel to add")
+    await Enter_channel_name.waiting_for_name.set()
 
 
-async def time_entered(m: Message):
-    await m.reply(m.text)
+async def name_entered(m: Message, repo: Repo, state: FSMContext):
+    if await repo.add_listened_channel(m.text):
+        await m.reply(f'Channel with name {m.text} is listening')
+        await state.finish()
+
+
+async def admin_rm_channel(m: Message):
+    await m.reply("Enter channel to remove")
+    await Enter_channel_name.waiting_for_name_rm.set()
+
+
+async def rm_name_entered(m: Message, repo: Repo, state: FSMContext):
+    if await repo.rm_listened_channel(m.text):
+        await m.reply(f'Channel with name {m.text} is removed')
+        await state.finish()
+
+
+async def admin_show_channels(m: Message, repo: Repo):
+    res = str(await repo.list_listened_channel())
+    await m.reply(res)
 
 
 async def show_banlist(m: Message, repo: Repo):
@@ -113,9 +134,20 @@ async def unban_cb(cb: CallbackQuery, repo: Repo):
 def register_admin(dp: Dispatcher):
     dp.register_message_handler(admin_start, commands=["start"], state="*", role=UserRole.ADMIN)
     dp.register_message_handler(admin_help, commands=["help"], state="*", role=UserRole.ADMIN)
-    dp.register_message_handler(admin_choose_time, commands=["add_time"], state="*", role=UserRole.ADMIN)
-    dp.register_message_handler(time_entered, state=Enter_time_post.waiting_for_time,
+
+    # add channel
+    dp.register_message_handler(admin_add_channel, commands=["add_channel"], state="*", role=UserRole.ADMIN)
+    dp.register_message_handler(name_entered, state=Enter_channel_name.waiting_for_name,
                                 role=UserRole.ADMIN)
+
+    # remove channel
+    dp.register_message_handler(admin_rm_channel, commands=["rm_channel"], state="*", role=UserRole.ADMIN)
+    dp.register_message_handler(rm_name_entered, state=Enter_channel_name.waiting_for_name_rm,
+                                role=UserRole.ADMIN)
+
+    # show all channels
+    dp.register_message_handler(admin_show_channels, commands=["show_channels"], state="*", role=UserRole.ADMIN)
+
     dp.register_callback_query_handler(ban_cb, lambda cb: cb.data.find('ban') == 0, state="*")
     dp.register_callback_query_handler(unban_cb, lambda cb: cb.data.find('unban') == 0, state="*")
     dp.register_message_handler(show_banlist, commands=["banlist"], state="*", role=UserRole.ADMIN)
@@ -130,6 +162,7 @@ def register_admin(dp: Dispatcher):
 
     dp.register_callback_query_handler(ban_cb, lambda cb: cb.data.find('ban_') == 0, state="*")
     dp.register_callback_query_handler(unban_cb, lambda cb: cb.data.find('unban_') == 0, state="*")
+
     # # or you can pass multiple roles:
     # dp.register_message_handler(admin_start, commands=["start"], state="*", role=[UserRole.ADMIN])
     # # or use another filter:

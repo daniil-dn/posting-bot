@@ -18,6 +18,9 @@ class KeyboardManager:
         kb.insert(types.KeyboardButton('/banlist'))
         kb.insert(types.KeyboardButton('/unban ID'))
         kb.insert(types.KeyboardButton('/ban ID'))
+        kb.insert(types.KeyboardButton('/add_channel'))
+        kb.insert(types.KeyboardButton('/rm_channel'))
+        kb.insert(types.KeyboardButton('/show_channels'))
         return kb
 
     @staticmethod
