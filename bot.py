@@ -20,6 +20,7 @@ from tgbot.services.NewVacancyParsing import start_notifing
 
 logger = logging.getLogger(__name__)
 
+
 async def on_startup(bot, config: Config):
     count = await broadcast(bot, config.tg_bot.admin_ids, 'Бот запущен!')
     return count
@@ -95,10 +96,9 @@ async def main():
 
     # start
     try:
-        tln_conf = config.telethone
         await on_startup(bot, config)
-        # await start_notifing(tln_conf.api_id, tln_conf.api_hash, tln_conf.to_forward, ['ue', "unreal"])
         await dp.start_polling()
+
 
     finally:
         await dp.storage.close()
@@ -108,7 +108,13 @@ async def main():
 
 if __name__ == '__main__':
     try:
-        asyncio.run(main())
-
+        tln_conf = load_config("tgbot/bot.ini").telethone
+        ioloop = asyncio.get_event_loop()
+        tasks = [
+            main(),
+            start_notifing(tln_conf.api_id, tln_conf.api_hash, tln_conf.to_forward, ['ue', "unreal"])
+        ]
+        ioloop.run_until_complete(asyncio.wait(tasks))
+        ioloop.close()
     except (KeyboardInterrupt, SystemExit):
         logger.error("Bot stopped!")
