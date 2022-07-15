@@ -18,8 +18,15 @@ from tgbot.services.broadcaster import broadcast
 from tgbot.keyboards.keyboards import KeyboardManager
 from tgbot.services.NewVacancyParsing import start_notifing
 
+logfile = 'log_1.log'
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+FH = logging.FileHandler(logfile)
+basic_formater = logging.Formatter('%(asctime)s : [%(levelname)s] : %(message)s')
+FH.setFormatter(basic_formater)
+logger.addHandler(FH)
 
 
 async def on_startup(bot, config: Config):
@@ -112,7 +119,7 @@ if __name__ == '__main__':
         ioloop = asyncio.get_event_loop()
         tasks = [
             main(),
-            start_notifing(tln_conf.api_id, tln_conf.api_hash, tln_conf.to_forward, ['ue', "unreal"],
+            start_notifing(logger, tln_conf.api_id, tln_conf.api_hash, tln_conf.to_forward, ['ue', "unreal"],
                            load_config("tgbot/bot.ini"), create_pool)
         ]
         ioloop.run_until_complete(asyncio.wait(tasks))
