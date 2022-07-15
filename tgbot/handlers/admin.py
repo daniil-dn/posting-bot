@@ -38,14 +38,17 @@ async def admin_help(m: Message):
 async def admin_show_logger(m: Message):
     res = ''
 
+    try:
+        with open('log_1.log', 'rb') as f:
 
-    with open('log_1.log', 'rb') as f:
+            f.seek(f.tell() - 800, 2)
+            print(f.tell())
+            for line in  f:
+                res += line.decode(encoding='utf-8')
+        await m.reply(res)
+    except OSError as err:
+        await m.reply(err)
 
-        f.seek(f.tell() - 800, 2)
-        print(f.tell())
-        for line in  f:
-            res += line.decode(encoding='utf-8')
-    await m.reply(res)
 
 
 async def admin_add_channel(m: Message):
