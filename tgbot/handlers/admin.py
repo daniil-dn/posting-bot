@@ -1,4 +1,5 @@
 import string
+import os
 
 from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
@@ -32,6 +33,19 @@ async def admin_help(m: Message):
                   "\n/add_channel || /remove_channel - добавить или удалить отслеживаемый канал "
                   "\n/show_channels  - показать отслеживаемые каналы"
                   "\n/help - вывод этого окна", parse_mode='html', reply_markup=KeyboardManager.get_admin_start_rm())
+
+
+async def admin_show_logger(m: Message):
+    res = ''
+
+
+    with open('log_1.log', 'rb') as f:
+
+        f.seek(f.tell() - 800, 2)
+        print(f.tell())
+        for line in  f:
+            res += line.decode(encoding='utf-8')
+    await m.reply(res)
 
 
 async def admin_add_channel(m: Message):
@@ -134,6 +148,7 @@ async def unban_cb(cb: CallbackQuery, repo: Repo):
 def register_admin(dp: Dispatcher):
     dp.register_message_handler(admin_start, commands=["start"], state="*", role=UserRole.ADMIN)
     dp.register_message_handler(admin_help, commands=["help"], state="*", role=UserRole.ADMIN)
+    dp.register_message_handler(admin_show_logger, commands=["logger"], state="*", role=UserRole.ADMIN)
 
     # add channel
     dp.register_message_handler(admin_add_channel, commands=["add_channel"], state="*", role=UserRole.ADMIN)
