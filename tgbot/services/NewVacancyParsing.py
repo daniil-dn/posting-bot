@@ -1,7 +1,8 @@
 import asyncpgx
+import asyncio
 from telethon import TelegramClient, sync, events
 from tgbot.middlewares.db import Repo
-
+from telethon import functions, types
 
 # api_id = 10582137
 # api_hash = 'bcc45c276f0c29e35cc5d56422c60e45'
@@ -9,7 +10,9 @@ from tgbot.middlewares.db import Repo
 async def start_notifing(logger, api_id, api_hash, where_to_send, key_phrases_list, config, create_pool,
                          session_name='default_name'):
     client = TelegramClient(session_name, api_id, api_hash)
-
+    await client(functions.account.UpdateStatusRequest(
+        offline=False
+    ))
     pool = await create_pool(
         user=config.db.user,
         password=config.db.password,
@@ -21,6 +24,7 @@ async def start_notifing(logger, api_id, api_hash, where_to_send, key_phrases_li
     @client.on(events.NewMessage)
     async def all_handler(event):
         try:
+
             db = await pool.acquire()
             repo = Repo(db)
             chs_list = await repo.list_listened_channel()
