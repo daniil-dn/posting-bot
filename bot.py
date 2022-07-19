@@ -119,7 +119,7 @@ if __name__ == '__main__':
         ioloop = asyncio.get_event_loop()
         tasks = [
             main(),
-            start_notifing(logger, tln_conf.api_id, tln_conf.api_hash, tln_conf.to_forward, ['ue', "unreal"],
+            start_notifing(ioloop, logger, tln_conf.api_id, tln_conf.api_hash, tln_conf.to_forward, ['ue', "unreal"],
                            load_config("tgbot/bot.ini"), create_pool)
         ]
         ioloop.run_until_complete(asyncio.wait(tasks))

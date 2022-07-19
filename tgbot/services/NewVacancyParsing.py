@@ -1,5 +1,7 @@
 import asyncpgx
 import asyncio
+
+import telethon.tl.functions.account
 from telethon import TelegramClient, sync, events
 from tgbot.middlewares.db import Repo
 
@@ -7,9 +9,10 @@ from tgbot.middlewares.db import Repo
 # api_id = 10582137
 # api_hash = 'bcc45c276f0c29e35cc5d56422c60e45'
 # where_to_send = -1001662034287
-async def start_notifing(logger, api_id, api_hash, where_to_send, key_phrases_list, config, create_pool,
+async def start_notifing(ioloop, logger, api_id, api_hash, where_to_send, key_phrases_list, config, create_pool,
                          session_name='default_name'):
     client = TelegramClient(session_name, api_id, api_hash)
+
 
 
     client.flood_sleep_threshold = 0
@@ -44,8 +47,14 @@ async def start_notifing(logger, api_id, api_hash, where_to_send, key_phrases_li
         except Exception as err:
             logger.error(err)
 
+    async def update_status():
+        while True:
+            await client(telethon.tl.functions.account.UpdateStatusRequest(False))
+            print('status updated')
+            await asyncio.sleep(30)
     try:
         await client.start()
+        await update_status()
         await client.run_until_disconnected()
     except Exception as err:
         logger.error(err)
