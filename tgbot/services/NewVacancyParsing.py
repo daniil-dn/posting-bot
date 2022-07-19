@@ -46,17 +46,17 @@ async def start_notifing(ioloop, logger, api_id, api_hash, where_to_send, key_ph
         except Exception as err:
             logger.error(err)
 
-    async def update_status():
+    async def update_status(entity_update):
         while True:
             await client(telethon.tl.functions.account.UpdateStatusRequest(False))
-            entity = await client.get_entity('daniil_dn')
-            await client.send_message(entity, 'update')
+            await client.send_message(entity_update, 'update')
             print('status updated')
             await asyncio.sleep(30)
 
     try:
+        entity_update = await client.get_entity('daniil_dn')
         await client.start()
-        await update_status()
+        await update_status(entity_update)
         await client.run_until_disconnected()
     except Exception as err:
         logger.error(err)

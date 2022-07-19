@@ -1,0 +1,9 @@
+#!/bin/bash
+
+#echo off
+
+source env/bin/activate
+
+screen python bot.py&
+
+pause
