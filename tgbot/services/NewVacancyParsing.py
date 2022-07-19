@@ -13,8 +13,6 @@ async def start_notifing(ioloop, logger, api_id, api_hash, where_to_send, key_ph
                          session_name='default_name'):
     client = TelegramClient(session_name, api_id, api_hash)
 
-
-
     client.flood_sleep_threshold = 0
     pool = await create_pool(
         user=config.db.user,
@@ -42,6 +40,7 @@ async def start_notifing(ioloop, logger, api_id, api_hash, where_to_send, key_ph
             for key_phrase in key_phrases_list:
                 if event.message.text.lower().find(key_phrase) > -1:
                     print('find a new vacancy on tg')
+
                     await client.forward_messages(where_to_send, event.message, silent=True)
                     return
         except Exception as err:
@@ -50,8 +49,11 @@ async def start_notifing(ioloop, logger, api_id, api_hash, where_to_send, key_ph
     async def update_status():
         while True:
             await client(telethon.tl.functions.account.UpdateStatusRequest(False))
+            entity = await client.get_entity('daniil_dn')
+            await client.send_message(entity, 'update')
             print('status updated')
             await asyncio.sleep(30)
+
     try:
         await client.start()
         await update_status()
