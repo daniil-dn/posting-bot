@@ -57,7 +57,7 @@ async def start_notifing(ioloop, logger, api_id, api_hash, where_to_send, key_ph
 
         await client.start()
         entity_update = await client.get_entity('daniil_dn')
-        await update_status(entity_update)
+        # await update_status(entity_update)
         await client.run_until_disconnected()
 
     except Exception as err:
