@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-ps -ah | grep bot.py -m 1 | awk '{print $1}' | xargs kill -1
+ps -au | grep bot.py -m 1 | awk '{print $2}' | xargs kill -2
 
 source env/bin/activate
 
