@@ -11,8 +11,6 @@ from tgbot.middlewares.db import Repo
 # where_to_send = -1001662034287
 async def start_notifing(ioloop, logger, api_id, api_hash, where_to_send, key_phrases_list, config, create_pool,
                          session_name='default_name'):
-
-
     pool = await create_pool(
         user=config.db.user,
         password=config.db.password,
@@ -22,43 +20,44 @@ async def start_notifing(ioloop, logger, api_id, api_hash, where_to_send, key_ph
     )
 
     async def update_status(client):
-            while True:
-                # await client(telethon.tl.functions.account.UpdateStatusRequest(False))
-                # await client.send_message(entity_update, 'update')
-                await asyncio.sleep(30)
+        while True:
+            # await client(telethon.tl.functions.account.UpdateStatusRequest(False))
+            # await client.send_message(entity_update, 'update')
+            await asyncio.sleep(30)
 
     try:
-        while True:
-            client = TelegramClient(session_name, api_id, api_hash)
-            await client.start()
 
-            @client.on(events.NewMessage)
-            async def all_handler(event):
+        client = TelegramClient(session_name, api_id, api_hash)
+        await client.start()
+
+        @client.on(events.NewMessage)
+        async def all_handler(event):
+            try:
+
+                db = await pool.acquire()
+                repo = Repo(db)
+                chs_list = await repo.list_listened_channel()
+
                 try:
+                    username = getattr(event.chat, 'username')
+                    logger.info(f'new message from {username}')
+                except AttributeError as err:
+                    return
+                if not username in chs_list:
+                    return
+                for key_phrase in key_phrases_list:
+                    if event.message.text.lower().find(key_phrase) > -1:
+                        print('find a new vacancy on tg')
 
-                    db = await pool.acquire()
-                    repo = Repo(db)
-                    chs_list = await repo.list_listened_channel()
-
-                    try:
-                        username = getattr(event.chat, 'username')
-                        logger.info(f'new message from {username}')
-                    except AttributeError as err:
+                        await client.forward_messages(where_to_send, event.message, silent=True)
                         return
-                    if not username in chs_list:
-                        return
-                    for key_phrase in key_phrases_list:
-                        if event.message.text.lower().find(key_phrase) > -1:
-                            print('find a new vacancy on tg')
+            except Exception as err:
+                logger.error(err)
 
-                            await client.forward_messages(where_to_send, event.message, silent=True)
-                            return
-                except Exception as err:
-                    logger.error(err)
-            await asyncio.sleep(40)
-            await client.disconnect()
-            # entity_update = await client.get_entity('daniil_dn')
-            # await update_status(client)
+        await client.run_until_disconnected()
+        await client.disconnect()
+        # entity_update = await client.get_entity('daniil_dn')
+        # await update_status(client)
 
 
 
