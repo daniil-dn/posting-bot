@@ -33,23 +33,21 @@ async def start_notifing(ioloop, logger, api_id, api_hash, where_to_send, key_ph
         @client.on(events.NewMessage)
         async def all_handler(event):
             try:
-
-                db = await pool.acquire()
-                repo = Repo(db)
-                chs_list = await repo.list_listened_channel()
-
                 try:
                     username = getattr(event.chat, 'username')
                     logger.info(f'new message from {username}')
                 except AttributeError as err:
                     return
+                db = await pool.acquire()
+                repo = Repo(db)
+                chs_list = await repo.list_listened_channel()
                 if not username in chs_list:
                     return
                 for key_phrase in key_phrases_list:
                     if event.message.text.lower().find(key_phrase) > -1:
                         print('find a new vacancy on tg')
-
                         await client.forward_messages(where_to_send, event.message, silent=True)
+                        await db.close()
                         return
             except Exception as err:
                 logger.error(err)
