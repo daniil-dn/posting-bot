@@ -42,6 +42,7 @@ async def start_notifing(ioloop, logger, api_id, api_hash, where_to_send, key_ph
                 repo = Repo(db)
                 chs_list = await repo.list_listened_channel()
                 if not username in chs_list:
+                    await db.close()
                     return
                 for key_phrase in key_phrases_list:
                     if event.message.text.lower().find(key_phrase) > -1:
